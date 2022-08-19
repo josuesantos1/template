@@ -6,11 +6,13 @@
 
 (defonce runnable-service (server/create-server service/service))
 
-(defn run-dev
+(defonce APP (atom nil))
+
+(defn start-server
   "The entry-point for 'lein run-dev'"
   [& args]
   (println "\nCreating your [DEV] server...")
-  (-> service/service 
+  (reset! APP (-> service/service
       (merge {:env :dev
               ::server/join? false
               ::server/routes #(route/expand-routes (deref #'service/routes))
@@ -19,10 +21,21 @@
       server/default-interceptors
       server/dev-interceptors
       server/create-server
-      server/start))
+      server/start)))
 
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
   (println "\nCreating your server...")
   (server/start runnable-service))
+
+(defn stop-server
+  []
+  (server/stop @APP))
+
+
+(defn restart-server
+  []
+  (stop-server)
+  (start-server))
+
